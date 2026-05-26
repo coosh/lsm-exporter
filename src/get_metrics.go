@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-var httpClient = &http.Client{Timeout: scrapeTimeout}
+var httpClient *http.Client
 
 func fetch(url string) (string, error) {
 	resp, err := httpClient.Get(url)

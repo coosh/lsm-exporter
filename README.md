@@ -31,21 +31,22 @@ Scrapes llama-swap's own system and GPU metrics, and for each loaded model proxi
 
 All standard llama-server Prometheus metrics, with a `model` label injected. Only models currently in `ready` state are scraped — no models are loaded on demand.
 
-## Configuration
+## Usage
 
-| Environment variable | Default | Description |
-|---|---|---|
-| `LLAMA_SWAP_URL` | `http://localhost:8080` | Base URL of the llama-swap instance |
-| `LISTEN_PORT` | `9090` | Port to serve `/metrics` on |
-| `SCRAPE_TIMEOUT` | `5s` | HTTP timeout for upstream requests |
+```
+lsm-exporter [options]
 
-## Running
-
-```sh
-LLAMA_SWAP_URL=http://my-llama-swap-host:8080 ./lsm-exporter
+  -a  listen address      (default: 0.0.0.0)
+  -p  listen port         (default: 9090)
+  -l  llama-swap base URL (default: http://localhost:8080)
+  -t  scrape timeout (s)  (default: 5)
 ```
 
-Metrics are served at `http://localhost:9090/metrics`. A `/health` endpoint returns `OK`.
+```sh
+lsm-exporter -a 0.0.0.0 -p 9090 -l http://llama-swap.host:8080 -t 60
+```
+
+Metrics are served at `http://<listen-address>:<port>/metrics`. A `/health` endpoint returns `OK`.
 
 ## Building
 
