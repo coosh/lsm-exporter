@@ -1,25 +1,11 @@
 # syntax=docker/dockerfile:1
 
-# ---------------------
-# Build stage
-# ---------------------
-FROM golang:1.25-alpine AS builder
-
-WORKDIR /build
-COPY go.mod ./
-RUN go mod download
-
-COPY src/ ./src/
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /lsm-exporter ./src/
-
-# ---------------------
-# Runtime stage
-# ---------------------
 FROM alpine:3.21
 
 RUN apk --no-cache add ca-certificates
 
-COPY --from=builder /lsm-exporter /lsm-exporter
+ARG TARGETARCH
+COPY lsm-exporter-${TARGETARCH} /lsm-exporter
 
 ENV LSM_LISTEN_ADDR=0.0.0.0 \
     LSM_LISTEN_PORT=9090 \
