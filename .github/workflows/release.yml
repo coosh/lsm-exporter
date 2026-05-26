@@ -68,15 +68,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download linux binaries
         uses: actions/download-artifact@v4
         with:
-          path: docker-context
+          path: .
           pattern: lsm-exporter-linux-*
           merge-multiple: true
 
       - name: Rename for docker context
-        working-directory: docker-context
         run: |
           mv lsm-exporter-linux-amd64 lsm-exporter-amd64
           mv lsm-exporter-linux-arm64 lsm-exporter-arm64
