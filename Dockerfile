@@ -5,7 +5,7 @@ FROM alpine:3.21
 RUN apk --no-cache add ca-certificates
 
 ARG TARGETARCH
-COPY lsm-exporter-${TARGETARCH} /lsm-exporter
+COPY --chmod=755 lsm-exporter-${TARGETARCH} /lsm-exporter
 
 ENV LSM_LISTEN_ADDR=0.0.0.0 \
     LSM_LISTEN_PORT=9090 \
