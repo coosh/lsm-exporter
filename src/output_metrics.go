@@ -12,7 +12,8 @@ func addModelLabel(metrics string, modelName string) string {
 	for line := range strings.SplitSeq(metrics, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
-			sb.WriteString(line + "\n")
+			sb.WriteString(line)
+			sb.WriteByte('\n')
 			continue
 		}
 
@@ -22,7 +23,8 @@ func addModelLabel(metrics string, modelName string) string {
 		if braceIdx != -1 && (spaceIdx == -1 || braceIdx < spaceIdx) {
 			closing := strings.Index(trimmed[braceIdx:], "}")
 			if closing == -1 {
-				sb.WriteString(line + "\n")
+				sb.WriteString(line)
+				sb.WriteByte('\n')
 				continue
 			}
 			labelContent := trimmed[braceIdx+1 : braceIdx+closing]
@@ -36,7 +38,8 @@ func addModelLabel(metrics string, modelName string) string {
 			rest := trimmed[spaceIdx:]
 			fmt.Fprintf(&sb, "%s{model=%q}%s\n", trimmed[:spaceIdx], modelName, rest)
 		} else {
-			sb.WriteString(line + "\n")
+			sb.WriteString(line)
+			sb.WriteByte('\n')
 		}
 	}
 	return sb.String()
