@@ -48,6 +48,47 @@ lsm-exporter -a 0.0.0.0 -p 9090 -l http://llama-swap.host:8080 -t 60
 
 Metrics are served at `http://<listen-address>:<port>/metrics`. A `/health` endpoint returns `OK`.
 
+## Docker image
+
+A multi-arch image is published at `ghcr.io/coosh/lsm-exporter` for `linux/amd64` and `linux/arm64`.
+
+### Environment variables
+
+All CLI flags have equivalent environment variables:
+
+| Variable | CLI flag | Default |
+|---|---|---|
+| `LSM_LISTEN_ADDR` | `-a` | `0.0.0.0` |
+| `LSM_LISTEN_PORT` | `-p` | `9090` |
+| `LLAMASWAP_URL` | `-l` | `http://localhost:8080` |
+| `SCRAPE_TIMEOUT` | `-t` | `5` |
+
+### Run directly
+
+```sh
+docker run -d \
+  --name lsm-exporter \
+  -p 9090:9090 \
+  -e LLAMASWAP_URL=http://llama-swap.host:8080 \
+  ghcr.io/coosh/lsm-exporter:latest
+```
+
+### Docker Compose
+
+```yaml
+services:
+  lsm-exporter:
+    image: ghcr.io/coosh/lsm-exporter:latest
+    container_name: lsm-exporter
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    environment:
+      LLAMASWAP_URL: "http://llama-swap.host:8080"
+```
+
+Replace `llama-swap.host` with the actual hostname or IP of your llama-swap instance. If llama-swap is also running in Docker, use its service name instead.
+
 ## Building
 
 ```sh

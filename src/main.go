@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -21,10 +23,10 @@ func main() {
 		timeoutSecs int
 	)
 
-	flag.StringVar(&listenHost, "a", "0.0.0.0", "listen address")
-	flag.StringVar(&listenPort, "p", "9090", "listen port")
-	flag.StringVar(&llamaSwapURL, "l", "http://localhost:8080", "llama-swap base URL")
-	flag.IntVar(&timeoutSecs, "t", 5, "scrape timeout in seconds")
+	flag.StringVar(&listenHost, "a", envDefault("LSM_LISTEN_ADDR", "0.0.0.0"), "listen address")
+	flag.StringVar(&listenPort, "p", envDefault("LSM_LISTEN_PORT", "9090"), "listen port")
+	flag.StringVar(&llamaSwapURL, "l", envDefault("LLAMASWAP_URL", "http://localhost:8080"), "llama-swap base URL")
+	flag.IntVar(&timeoutSecs, "t", envDefaultInt("SCRAPE_TIMEOUT", 5), "scrape timeout in seconds")
 	flag.Parse()
 
 	llamaSwapURL = strings.TrimRight(llamaSwapURL, "/")
@@ -51,4 +53,20 @@ func main() {
 func metricsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
 	fmt.Fprint(w, collectMetrics())
+}
+
+func envDefault(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
+func envDefaultInt(key string, fallback int) int {
+	if v := os.Getenv(key); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			return n
+		}
+	}
+	return fallback
 }
