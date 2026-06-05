@@ -39,6 +39,7 @@ lsm-exporter [options]
   -a  listen address      (default: 0.0.0.0)
   -p  listen port         (default: 9090)
   -l  llama-swap base URL (default: http://localhost:8080)
+  -k  llama-swap API key  (default: none)
   -t  scrape timeout (s)  (default: 5)
 ```
 
@@ -61,6 +62,7 @@ All CLI flags have equivalent environment variables:
 | `LSM_LISTEN_ADDR` | `-a` | `0.0.0.0` |
 | `LSM_LISTEN_PORT` | `-p` | `9090` |
 | `LLAMASWAP_URL` | `-l` | `http://localhost:8080` |
+| `LLAMASWAP_API_KEY` | `-k` | none |
 | `SCRAPE_TIMEOUT` | `-t` | `5` |
 
 ### Run directly

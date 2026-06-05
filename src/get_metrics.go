@@ -9,7 +9,14 @@ import (
 var httpClient *http.Client
 
 func fetch(url string) (string, error) {
-	resp, err := httpClient.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+	if apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+	}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}

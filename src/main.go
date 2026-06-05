@@ -13,6 +13,7 @@ import (
 
 var (
 	llamaSwapURL  string
+	apiKey        string
 	scrapeTimeout time.Duration
 )
 
@@ -26,6 +27,7 @@ func main() {
 	flag.StringVar(&listenHost, "a", envDefault("LSM_LISTEN_ADDR", "0.0.0.0"), "listen address")
 	flag.StringVar(&listenPort, "p", envDefault("LSM_LISTEN_PORT", "9090"), "listen port")
 	flag.StringVar(&llamaSwapURL, "l", envDefault("LLAMASWAP_URL", "http://localhost:8080"), "llama-swap base URL")
+	flag.StringVar(&apiKey, "k", envDefault("LLAMASWAP_API_KEY", ""), "llama-swap API key")
 	flag.IntVar(&timeoutSecs, "t", envDefaultInt("SCRAPE_TIMEOUT", 5), "scrape timeout in seconds")
 	flag.Parse()
 
