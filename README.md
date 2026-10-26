@@ -41,10 +41,17 @@ lsm-exporter [options]
   -l  llama-swap base URL (default: http://localhost:8080)
   -k  llama-swap API key  (default: none)
   -t  scrape timeout (s)  (default: 5)
+  -s  skip TLS certificate verification (default: false)
 ```
 
 ```sh
 lsm-exporter -a 0.0.0.0 -p 9090 -l http://llama-swap.host:8080 -t 60
+```
+
+Use `-s` when llama-swap is served over HTTPS with a self-signed or otherwise untrusted certificate:
+
+```sh
+lsm-exporter -l https://llama-swap.host:8080 -s
 ```
 
 Metrics are served at `http://<listen-address>:<port>/metrics`. A `/health` endpoint returns `OK`.
@@ -64,6 +71,7 @@ All CLI flags have equivalent environment variables:
 | `LLAMASWAP_URL` | `-l` | `http://localhost:8080` |
 | `LLAMASWAP_API_KEY` | `-k` | none |
 | `SCRAPE_TIMEOUT` | `-t` | `5` |
+| `LSM_SKIP_TLS_VERIFY` | `-s` | `false` |
 
 ### Run directly
 
