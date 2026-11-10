@@ -59,7 +59,7 @@ func collectMetrics() string {
 
 	models := getActiveModels()
 	for _, model := range models {
-		if model.Model == "" {
+		if model.Model == "" || model.State != "ready" {
 			continue
 		}
 		// Use /upstream passthrough rather than model.
