@@ -3,8 +3,45 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
+	"net/url"
 	"strings"
+	"sync"
 )
+
+// loopbackWarned tracks model/proxy pairs already reported as loopback, so the
+// notice is logged once rather than on every scrape.
+var loopbackWarned sync.Map
+
+// modelMetricsURL returns the URL to scrape for a model's metrics. By default
+// this goes through llama-swap's /upstream passthrough; in direct mode it hits
+// the model's proxy address itself so llama-swap does not see the request.
+func modelMetricsURL(model RunningModel) (string, error) {
+	if !directUpstream {
+		return llamaSwapURL + "/upstream/" + model.Model + "/metrics", nil
+	}
+
+	proxy := strings.TrimRight(model.Proxy, "/")
+	if proxy == "" {
+		return "", fmt.Errorf("no proxy address reported by /running")
+	}
+
+	if u, err := url.Parse(proxy); err == nil && isLoopbackHost(u.Hostname()) {
+		if _, seen := loopbackWarned.LoadOrStore(model.Model+"|"+proxy, struct{}{}); !seen {
+			log.Printf("model %s proxy address %s is a loopback address; direct scraping only works when lsm-exporter shares a host/network namespace with llama-swap", model.Model, proxy)
+		}
+	}
+
+	return proxy + "/metrics", nil
+}
+
+func isLoopbackHost(host string) bool {
+	if strings.EqualFold(host, "localhost") {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
+}
 
 // addModelLabel injects a model="<name>" label into every Prometheus metric line.
 func addModelLabel(metrics string, modelName string) string {
@@ -62,8 +99,11 @@ func collectMetrics() string {
 		if model.Model == "" {
 			continue
 		}
-		// Use /upstream passthrough rather than model.
-		metricsURL := llamaSwapURL + "/upstream/" + model.Model + "/metrics"
+		metricsURL, err := modelMetricsURL(model)
+		if err != nil {
+			log.Printf("cannot scrape model %s: %v", model.Model, err)
+			continue
+		}
 		modelMetrics, err := fetch(metricsURL)
 		if err != nil {
 			log.Printf("failed to fetch metrics for model %s: %v", model.Model, err)

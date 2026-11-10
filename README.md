@@ -42,6 +42,7 @@ lsm-exporter [options]
   -k  llama-swap API key  (default: none)
   -t  scrape timeout (s)  (default: 5)
   -s  skip TLS certificate verification (default: false)
+  -d  scrape models directly via their proxy address (default: false)
 ```
 
 ```sh
@@ -55,6 +56,37 @@ lsm-exporter -l https://llama-swap.host:8080 -s
 ```
 
 Metrics are served at `http://<listen-address>:<port>/metrics`. A `/health` endpoint returns `OK`.
+
+## Model TTL and how models are scraped
+
+By default, each model's metrics are fetched through llama-swap's passthrough at `<llama-swap>/upstream/<model>/metrics`. llama-swap treats that as a normal request to the model, so every scrape **resets the model's `ttl` timer**. If your scrape interval is shorter than a model's `ttl`, that model will never be unloaded for being idle.
+
+To avoid this, use one of these options:
+
+### Option 1: scrape models directly (`-d`)
+
+With `-d` / `LSM_DIRECT_UPSTREAM=true`, the exporter reads each model's `proxy` address from llama-swap's `/running` endpoint and scrapes `<proxy>/metrics` directly. llama-swap never sees the request, so the TTL timer is not affected.
+
+```sh
+lsm-exporter -l http://llama-swap.host:8080 -d
+```
+
+The proxy address is whatever llama-swap uses to reach the model, usually something like `http://127.0.0.1:5800`. A loopback address like this can only be reached when the exporter runs on the same host as llama-swap, and in the same network namespace. If the exporter runs on another machine or in a separate container, it can't reach that address. The exporter logs a message once per model when it detects a loopback proxy address. To fix it, set each model's `proxy` in the llama-swap config to an address the exporter can reach, or run the exporter alongside llama-swap (for example with `network_mode: host` or in llama-swap's network namespace).
+
+### Option 2: tell llama-swap to ignore the metrics path
+
+If you'd rather keep scraping through llama-swap, add `/metrics` to llama-swap's `upstream.ignorePaths`. Requests to paths on this list don't count as activity, so they don't reset the TTL or start a model:
+
+```yaml
+# llama-swap config.yaml
+upstream:
+  ignorePaths:
+    # setting ignorePaths replaces llama-swap's default list, so repeat the default static-asset pattern
+    - '.*\.(js|json|css|png|gif|jpg|jpeg|ico|txt)$'
+    - '^\/metrics$'
+```
+
+The patterns are matched against the path after `/upstream/<model>`.
 
 ## Docker image
 
@@ -72,6 +104,7 @@ All CLI flags have equivalent environment variables:
 | `LLAMASWAP_API_KEY` | `-k` | none |
 | `SCRAPE_TIMEOUT` | `-t` | `5` |
 | `LSM_SKIP_TLS_VERIFY` | `-s` | `false` |
+| `LSM_DIRECT_UPSTREAM` | `-d` | `false` |
 
 ### Run directly
 

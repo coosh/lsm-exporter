@@ -17,6 +17,7 @@ var (
 	apiKey        string
 	scrapeTimeout time.Duration
 	skipTLSVerify bool
+	directUpstream bool
 )
 
 func main() {
@@ -32,6 +33,7 @@ func main() {
 	flag.StringVar(&apiKey, "k", envDefault("LLAMASWAP_API_KEY", ""), "llama-swap API key")
 	flag.IntVar(&timeoutSecs, "t", envDefaultInt("SCRAPE_TIMEOUT", 5), "scrape timeout in seconds")
 	flag.BoolVar(&skipTLSVerify, "s", envDefaultBool("LSM_SKIP_TLS_VERIFY", false), "skip TLS certificate verification (self-signed certs)")
+	flag.BoolVar(&directUpstream, "d", envDefaultBool("LSM_DIRECT_UPSTREAM", false), "scrape each model's proxy address directly instead of via llama-swap /upstream (avoids resetting the model TTL)")
 	flag.Parse()
 
 	llamaSwapURL = strings.TrimRight(llamaSwapURL, "/")
@@ -46,6 +48,9 @@ func main() {
 
 	if skipTLSVerify {
 		log.Printf("TLS certificate verification is disabled")
+	}
+	if directUpstream {
+		log.Printf("direct upstream mode enabled: model metrics are scraped from each model's proxy address")
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
